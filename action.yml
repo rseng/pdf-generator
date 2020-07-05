@@ -11,7 +11,7 @@ inputs:
   paper_markdown:
     description: >
       The path to the paper.md file. Defaults to JoSS convention, paper/paper.md
-    default: paper/paper.md
+    default: /code/paper/paper.md
   paper_outfile:
     description: The path to the PDF to be generated. Defaults to paper/paper.pdf
     default: paper.pdf
