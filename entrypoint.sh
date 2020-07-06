@@ -119,7 +119,10 @@ if [ "${INPUT_PDF_TYPE}" == "minimal" ]; then
                 outdir=$(dirname "${INPUT_PAPER_MARKDOWN}")
                 outfile="${outdir}/${outfile}"
             fi 
-            generate_minimal "${INPUT_PAPER_MARKDOWN}" "${outfile}" "${INPUT_BIBTEX}"
+            # Only run if outfile does not exist
+            if [ ! -f "${outfile}" ]; then
+                generate_minimal "${INPUT_PAPER_MARKDOWN}" "${outfile}" "${INPUT_BIBTEX}"
+            fi
         done
     fi
 
@@ -191,11 +194,15 @@ else
                 outdir=$(dirname "${INPUT_PAPER_MARKDOWN}")
                 outfile="${outdir}/${outfile}"
             fi 
-            COMMAND="${COMMAND} -V graphics=\"true\" -V logo_path=\"${INPUT_PNG_LOGO}\" -V geometry:margin=1in --verbose -o ${outfile} --pdf-engine=xelatex --filter /usr/bin/pandoc-citeproc ${INPUT_PAPER_MARKDOWN} --from markdown+autolink_bare_uris --template ${INPUT_LATEX_TEMPLATE}"
-            printf "$COMMAND\n"
-            printf "${COMMAND}" > pandoc_run.sh
-            chmod +x pandoc_run.sh
-            /bin/bash pandoc_run.sh
+
+            # Only run if outfile does not exist
+            if [ ! -f "${outfile}" ]; then
+                COMMAND="${COMMAND} -V graphics=\"true\" -V logo_path=\"${INPUT_PNG_LOGO}\" -V geometry:margin=1in --verbose -o ${outfile} --pdf-engine=xelatex --filter /usr/bin/pandoc-citeproc ${INPUT_PAPER_MARKDOWN} --from markdown+autolink_bare_uris --template ${INPUT_LATEX_TEMPLATE}"
+                printf "$COMMAND\n"
+                printf "${COMMAND}" > pandoc_run.sh
+                chmod +x pandoc_run.sh
+                /bin/bash pandoc_run.sh
+            fi
         done
     fi
 fi
