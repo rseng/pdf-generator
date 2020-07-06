@@ -174,17 +174,17 @@ if [ "${INPUT_PDF_TYPE}" == "minimal" ]; then
 
 else
 
-    # Bibliography?
-    if [ ! -z "${INPUT_BIBTEX}" ]; then
-        COMMAND="${COMMAND} --bibliography ${INPUT_BIBTEX}"
-    fi
-
     if [ ! -z "${INPUT_PAPER_MARKDOWN}" ]; then
 
         # Build command programatically
         generate_mappings "${INPUT_MAPPING_FILE}" "${INPUT_VARIABLES_FILE}" mappings.txt
         mappings=$(cat mappings.txt)
         COMMAND="/usr/bin/pandoc ${mappings}"
+
+        # Bibliography?
+        if [ ! -z "${INPUT_BIBTEX}" ]; then
+            COMMAND="${COMMAND} --bibliography ${INPUT_BIBTEX}"
+        fi
 
         COMMAND="${COMMAND} -V graphics=\"true\" -V logo_path=\"${INPUT_PNG_LOGO}\" -V geometry:margin=1in --verbose -o ${INPUT_PAPER_OUTFILE} --pdf-engine=xelatex --filter /usr/bin/pandoc-citeproc ${INPUT_PAPER_MARKDOWN} --from markdown+autolink_bare_uris --template ${INPUT_LATEX_TEMPLATE}"
         printf "$COMMAND\n"
@@ -205,10 +205,16 @@ else
             # Only run if outfile does not exist
             if [ ! -f "${outfile}" ]; then
 
+                COMMAND="/usr/bin/pandoc"
                 generate_mappings "${INPUT_MAPPING_FILE}" "${INPUT_VARIABLES_FILE}" mappings.txt
                 mappings=$(cat mappings.txt)
 
-                COMMAND="/usr/bin/pandoc ${mappings} -V graphics=\"true\" -V logo_path=\"${INPUT_PNG_LOGO}\" -V geometry:margin=1in --verbose -o ${outfile} --pdf-engine=xelatex --filter /usr/bin/pandoc-citeproc ${INPUT_PAPER_MARKDOWN} --from markdown+autolink_bare_uris --template ${INPUT_LATEX_TEMPLATE}"
+                # Bibliography?
+                if [ ! -z "${INPUT_BIBTEX}" ]; then
+                    COMMAND="${COMMAND} --bibliography ${INPUT_BIBTEX}"
+                fi
+
+                COMMAND="${COMMAND} ${mappings} -V graphics=\"true\" -V logo_path=\"${INPUT_PNG_LOGO}\" -V geometry:margin=1in --verbose -o ${outfile} --pdf-engine=xelatex --filter /usr/bin/pandoc-citeproc ${INPUT_PAPER_MARKDOWN} --from markdown+autolink_bare_uris --template ${INPUT_LATEX_TEMPLATE}"
                 printf "$COMMAND\n"
                 printf "${COMMAND}" > pandoc_run.sh
                 chmod +x pandoc_run.sh

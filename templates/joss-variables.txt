@@ -1,2 +1,8 @@
 paper_url http://joss.theoj.org/papers/
-review_issue_url https://github.com/openjournals/joss-reviews/issues/
+review_issue_url https://github.com/openjournals/joss-reviews/issues/521
+repository https://github.com/expfactory/expfactory
+formatted_doi 10.5281/zenodo.1117203
+archive_doi http://dx.doi.org/10.5281/zenodo.1117203
+year 2018
+vol 1
+issue 1

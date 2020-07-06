@@ -1,0 +1,3 @@
+formatted_doi doi
+citation_author authors:name
+footnote_paper_title title

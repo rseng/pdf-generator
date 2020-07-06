@@ -5,11 +5,13 @@
 This is a GitHub action that will make it easy to generate a PDF for your
 software! If you are looking for a command line tool, see [openbases/openbases-pdf](https://github.com/openbases/openbases-pdf).
 This repository is intended for GitHub action usage, and basic Docker usage.
+Here are some quick examples of files generated - this of course depends on the template that
+you use!
 
-This repository is **under development**! We have yet to design an easy way to
-define (and then export) template substitutions - possibly we will look into
-providing a file that includes these substitutions, or some kind of list 
-definition.
+ - [minimal](paper/minimal.pdf)
+ - [pdf-joss](paper/paper.pdf)
+ - [sorse](paper/sorse.pdf)
+
 
 ## GitHub Action Usage
 
@@ -93,8 +95,8 @@ do:
      pdf_type: minimal
 ```
 
-See the [examples](examples) folder for a full recipe.
-
+See the [examples](examples) folder for a full recipe, including how to generate
+from a folder.
 
 ### Variables
 
@@ -148,14 +150,14 @@ The GitHub workspace is a good option, since it exists and this is the
 working directory for the action anyway.
 
 ```bash
-docker run -it --entrypoint bash -v $PWD:/github/workspace rseng/pdf-generator
+$ docker run -it --entrypoint bash -v $PWD:/github/workspace rseng/pdf-generator
 ```
 
 There is also a paper provided at `/code` if you don't have your own handy, and
 don't want to create the mount:
 
 ```bash
-docker run -it --entrypoint bash rseng/pdf-generator
+$ docker run -it --entrypoint bash rseng/pdf-generator
 ```
 
 Once inside the container, you can check that pandoc exists.
@@ -192,5 +194,24 @@ You can also try generating the more complex type:
 export INPUT_PDF_TYPE=pdf
 export INPUT_PAPER_OUTFILE=paper/paper.pdf
 ```
+
+And here is a different example that rendered the [paper/sorse.pdf](paper/sorse.pdf).
+
+```bash
+export INPUT_PAPER_MARKDOWN=paper/abstract.md
+export INPUT_LATEX_TEMPLATE=templates/latex.template.sorse
+export INPUT_PAPER_OUTFILE=paper/sorse.pdf
+export INPUT_PDF_TYPE=pdf
+export INPUT_PNG_LOGO=paper/sorse.png
+export INPUT_VARIABLES_FILE=templates/sorse-variables.txt
+export INPUT_MAPPING_FILE=templates/sorse-mapping.txt
+```
+
+## Extras
+
+Whether you use the GitHub action or local container, by default the command run
+will be saved to a `pandoc_run.sh` file, and you can use this to reproduce the run
+if necessary. We also could easily clean these files up after a run - please
+[open an issue](https://github.com/rseng/pdf-generator) if you have an opinion on the matter.
 
 Have a question or need help? Please [open an issue](https://www.github.com/vsoch/pdf-generator/issues)
