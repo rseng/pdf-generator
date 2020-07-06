@@ -1,0 +1,68 @@
+name: generate-pdf-artifacts
+
+on:
+  pull_request: []
+  push:
+    branches:
+     - master
+
+jobs:
+  GeneratePdfArtifacts:
+    name: Generate static web
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+      - name: Generate Full PDF Template      
+        uses: ./
+        with:        
+
+          # The latex template to use (defaults to one here)
+          latex_template: paper/latex.template.joss
+
+          # The markdown file to render,path is relative to repository
+          paper_markdown: paper/paper.md
+
+          # The paper pdf to save
+          paper_outfile: paper.pdf
+
+          # Bibliography file, if existing
+          bibtex: paper/paper.bib
+
+          # A path to a png logo file
+          png_logo: paper/sorse.png
+
+          # One of "minimal" or "pdf" for the template with image, etc.
+          pdf_type: pdf
+
+      - name: Generate Minimal PDF
+ 
+        # Important! Update to release https://github.com/rseng/rse-action/releases
+        uses: ./
+        with:        
+
+          # The markdown file to render,path is relative to repository
+          paper_markdown: paper/paper.md
+
+          # The paper pdf to save
+          paper_outfile: minimal.pdf
+
+          # Bibliography file, if existing
+          bibtex: paper/paper.bib
+
+          # One of "minimal" or "pdf" for the template with image, etc.
+          pdf_type: minimal
+
+      - name: Upload minimal pdf as artifact
+        uses: actions/upload-artifact@v2-preview
+
+        # Path is relative to GITHUB_WORKSPACE
+        with:
+          name: minimal-pdf
+          path: minimal.pdf
+
+      - name: Upload full templated pdf as artifact
+        uses: actions/upload-artifact@v2-preview
+        with:
+          name: full-pdf
+          path: paper.pdf
