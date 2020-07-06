@@ -49,7 +49,8 @@ This is different from a variable file where you would put "hard coded values"
 title This is the title of my paper
 ```
 
-Take a look at the variables and mapping example files in the [templates](templates) folder.
+Take a look at the variables and mapping example files in the [templates](templates) folder,
+and examples for GitHub actions in the [examples](examples) folder.
 
 ## Templates
 
