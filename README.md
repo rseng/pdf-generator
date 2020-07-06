@@ -23,8 +23,44 @@ The following variables are defined and can be customized.
 | png_logo | A png logo file to render in the top left of the paper | no | unset |
 | latex_template | the latex template to use. | no | paper/latex.template.joss |
 | pdf_type | one of minimal (standard pandoc latex) or pdf (template) | no | minimal |
+| workdir | if not the root of the repository, change to this directory first | no | unset |
+| variables_file | a file with lines of hard coded key=values to add | no | unset | 
+| mapping_file | a file with lines of key=value mappings to use | no | unset | 
 
-We will be adding example recipes and testing soon.
+For the mapping file, this would mean that if you have a variable in your markown `title`
+that should be rendered to `paper_title`, you would have a line like this:
+
+```
+paper_title title
+```
+> paper_title in the template is rendered from title in the markdown"
+
+And of course if they were the same (both title) you could leave this out.
+If you wanted to render a list of "authors" from a subfield in your markdown (e.g.,
+authors is a list and each has a name) you might do this:
+
+```
+authors authors:name
+```
+
+This is different from a variable file where you would put "hard coded values"
+
+```
+title This is the title of my paper
+```
+
+Take a look at the variables and mapping example files in the [templates](templates) folder.
+
+## Templates
+
+If you use the `pdf_type` "pdf" instead of "minimal" you will render your markdown
+using a template. The templates available are in [templates](templates) and each template
+can render a particular set of variables (e.g., authors, title, dois). There are two
+ways you can add variables to your templates:
+
+ 1. **In the front end matter of the markdown**. Let's say the template has a `$doi$` somewhere. If you define the variable `doi` in your front end matter, it will be rendered. This is the suggested approach to take for most templates.
+ 2. **In a variables.txt file**. If you want to define variables on the fly, you can generate a custom file with a pair of variables on each line. For example, take a look at the [templates/variables-joss.txt](templates/variables-joss.txt) file. Definition on the command line takes preference over in the front end matter, and if you want to use this file with a template, you should define the `variables_file` parameter for the action.
+
 
 ## Local Usage
 
@@ -63,11 +99,13 @@ should be relative to where you are running the script from.
 
 ```bash
 export INPUT_PAPER_MARKDOWN=paper/paper.md
-export INPUT_LATEX_TEMPLATE=paper/latex.template.joss
+export INPUT_LATEX_TEMPLATE=templates/latex.template.joss
 export INPUT_PAPER_OUTFILE=paper/minimal.pdf
 export INPUT_BIBTEX=paper/paper.bib
 export INPUT_PDF_TYPE=minimal
 export INPUT_PNG_LOGO=paper/documents-icon.png
+export INPUT_VARIABLES_FILE=templates/joss-variables.txt
+export INPUT_MAPPING_FILE=templates/joss-mapping.txt
 ```
 
 And then run the entrypoint script to generate your paper!

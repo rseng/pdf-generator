@@ -1,6 +1,7 @@
 name: generate-pdf-artifacts
 
 on:
+  pull_request: []
   push:
     branches:
      - master
@@ -17,7 +18,7 @@ jobs:
         with:        
 
           # The latex template to use (defaults to one here)
-          latex_template: paper/latex.template.joss
+          latex_template: templates/latex.template.joss
 
           # The markdown file to render,path is relative to repository
           # make sure that images are also relative to the root in the file
@@ -34,6 +35,12 @@ jobs:
 
           # One of "minimal" or "pdf" for the template with image, etc.
           pdf_type: pdf
+
+          # A variables file to use
+          variables_file: templates/joss-variables.txt
+ 
+          # A mapping file to use
+          mapping_file: templates/joss-mapping.txt
 
       - name: Generate Minimal PDF
  

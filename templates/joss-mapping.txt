@@ -1,0 +1,6 @@
+paper_title title
+footnote_paper_title title
+citation_author authors:name
+repository repo
+volume vol
+page issue

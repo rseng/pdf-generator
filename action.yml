@@ -17,12 +17,21 @@ inputs:
   bibtex:
     description: If needed, an optional bibliography file (prefix .bib)
     required: false
+  workdir:
+    description: if not the root of the repository, change into this directory first
+    required: false
   png_logo: 
     description: A png logo file to render in the top left of the paper.
     required: false
   latex_template: 
     description: the latex template to use. Defaults to a JoSS template.
-    default: /code/paper/latex.template.joss
+    default: /code/templates/latex.template.joss
   pdf_type: 
     description: one of minimal or pdf.
     default: minimal
+  variables_file:
+    description: a file with one pair of variables per line for the template
+    required: false
+  mapping_file:
+    description: a file with variable mappings to do for the template
+    required: false
