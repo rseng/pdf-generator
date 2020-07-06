@@ -1,4 +1,4 @@
-# PDF Builder
+# PDF Generator
 
 > Hi friend! :wave:
 
@@ -26,6 +26,71 @@ The following variables are defined and can be customized.
 | workdir | if not the root of the repository, change to this directory first | no | unset |
 | variables_file | a file with lines of hard coded key=values to add | no | unset | 
 | mapping_file | a file with lines of key=value mappings to use | no | unset | 
+
+
+### Quick Example
+
+If you want to render from a latex template, you might add a step that looks like this:
+
+```yaml
+ # See https://github.com/rseng/pdf-generator for release
+ - name: Generate Full PDF Template      
+   uses: rseng/pdf-generator@master
+   with:        
+
+     # The latex template to use (defaults to one here)
+     latex_template: templates/latex.template.joss
+
+     # The markdown file to render,path is relative to repository
+     # make sure that images are also relative to the root in the file
+     paper_markdown: paper/paper.md
+
+     # The paper pdf to save
+     paper_outfile: paper.pdf
+
+     # Bibliography file, if existing
+     bibtex: paper/paper.bib
+
+     # A path to a png logo file
+     png_logo: paper/sorse.png
+
+     # One of "minimal" or "pdf" for the template with image, etc.
+     pdf_type: pdf
+
+     # A variables file to use
+     variables_file: templates/joss-variables.txt
+ 
+     # A mapping file to use
+     mapping_file: templates/joss-mapping.txt
+```
+
+or if you want to generate a [minimal](paper/minimal.pdf) version you might
+do:
+
+```yaml
+ - name: Generate Minimal PDF
+ 
+   # Important! Update to release https://github.com/rseng/rse-action/releases
+   uses: ./
+   with:        
+
+     # The markdown file to render,path is relative to repository
+     paper_markdown: paper/paper.md
+
+     # The paper pdf to save
+     paper_outfile: minimal.pdf
+
+     # Bibliography file, if existing
+     bibtex: paper/paper.bib
+
+     # One of "minimal" or "pdf" for the template with image, etc.
+     pdf_type: minimal
+```
+
+See the [examples](examples) folder for a full recipe.
+
+
+### Variables
 
 For the mapping file, this would mean that if you have a variable in your markown `title`
 that should be rendered to `paper_title`, you would have a line like this:

@@ -13,8 +13,10 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2
+
+        # See https://github.com/rseng/pdf-generator for release
       - name: Generate Full PDF Template      
-        uses: ./
+        uses: rseng/pdf-generator@master
         with:        
 
           # The latex template to use (defaults to one here)
