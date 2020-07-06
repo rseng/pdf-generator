@@ -9,8 +9,7 @@ runs:
   image: 'Dockerfile'
 inputs:
   paper_markdown:
-    description: >
-      The path to the paper.md file. Defaults to JoSS convention, paper/paper.md
+    description: The path to the paper.md file. Defaults to JoSS convention, paper/paper.md
     default: /code/paper/paper.md
   paper_outfile:
     description: The path to the PDF to be generated. Defaults to paper/paper.pdf
@@ -21,7 +20,9 @@ inputs:
   png_logo: 
     description: A png logo file to render in the top left of the paper.
     required: false
-  latex_template: the latex template to use. Defaults to a JoSS template.
+  latex_template: 
+    description: the latex template to use. Defaults to a JoSS template.
     default: /code/paper/latex.template.joss
-  pdf_type: one of minimal or pdf.
+  pdf_type: 
+    description: one of minimal or pdf.
     default: minimal
