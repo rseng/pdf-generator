@@ -77,6 +77,7 @@ else
     paper_url=$(ob-paper get ${INPUT_PAPER_MARKDOWN} paper_url)
     review_issue_url=$(ob-paper get ${INPUT_PAPER_MARKDOWN} review_issue_url)
     
+    # TODO: modify this to be built based on custom variables
     /usr/bin/pandoc \
         -V paper_title="${title}" \
         -V footnote_paper_title="${title}" \

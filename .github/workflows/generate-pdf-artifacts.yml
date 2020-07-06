@@ -1,7 +1,6 @@
 name: generate-pdf-artifacts
 
 on:
-  pull_request: []
   push:
     branches:
      - master
@@ -21,6 +20,7 @@ jobs:
           latex_template: paper/latex.template.joss
 
           # The markdown file to render,path is relative to repository
+          # make sure that images are also relative to the root in the file
           paper_markdown: paper/paper.md
 
           # The paper pdf to save
