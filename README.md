@@ -26,7 +26,13 @@ The following variables are defined and can be customized.
 | workdir | if not the root of the repository, change to this directory first | no | unset |
 | variables_file | a file with lines of hard coded key=values to add | no | unset | 
 | mapping_file | a file with lines of key=value mappings to use | no | unset | 
+| paper_dir | If you want to render an entire folder of markdowns (recursive) set this variable | no | unset |
+| output_dir | Only used when paper_dir is defined, write output papers to this directory. | no | unset |
 
+**Important** if you set an output directory, the output files will be named based on the 
+markdown basename. You should ensure uniqueness of names, even between directories. If you
+don't set an output directory, then the rendered pdfs will go into the same folder where
+the markdown was found.
 
 ### Quick Example
 

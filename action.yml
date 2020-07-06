@@ -10,7 +10,13 @@ runs:
 inputs:
   paper_markdown:
     description: The path to the paper.md file. Defaults to JoSS convention, paper/paper.md
-    default: /code/paper/paper.md
+    required: false
+  paper_dir:
+    description: If you want to render an entire folder of markdowns (recursive) set this variable
+    required: false 
+  output_dir:
+    description: Only used when paper_dir is defined, write output papers to this directory.
+    required: false 
   paper_outfile:
     description: The path to the PDF to be generated. Defaults to paper/paper.pdf
     default: paper.pdf

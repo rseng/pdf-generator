@@ -9,10 +9,35 @@ fi
 printf "Files in workspace:\n"
 ls
 
-# Check that the paper markdown file exists
-if [ ! -f "${INPUT_PAPER_MARKDOWN}" ]; then
-    printf "Input markdown for paper ${INPUT_PAPER_MARKDOWN} not found.\n"
+# If both paper markdown and paper_dir are unset, nothing to do
+if [ -z "${INPUT_PAPER_MARKDOWN}" ] && [ -z "${INPUT_PAPER_DIR}" ]; then
+    printf "Please define either paper_markdown or paper_dir.\n"
     exit 1
+fi
+
+# Check that the paper markdown file exists
+if [ ! -z "${INPUT_PAPER_MARKDOWN}" ]; then
+    if [ ! -f "${INPUT_PAPER_MARKDOWN}" ]; then
+        printf "Input markdown for paper ${INPUT_PAPER_MARKDOWN} not found.\n"
+        exit 1
+    fi
+fi
+
+if [ ! -z "${INPUT_PAPER_DIR}" ]; then
+
+    # Make sure input directoy exists
+    if [ ! -d "${INPUT_PAPER_DIR}" ]; then
+        printf "Input directory ${INPUT_PAPER_DIR} not found.\n"
+        exit 1
+    fi
+
+    # If output directory defined, it needs to exist too
+    if [ ! -z "${INPUT_OUTPUT_DIR}" ]; then
+        if [ ! -d "${INPUT_OUTPUT_DIR}" ]; then
+            printf "Output directory ${INPUT_OUTPUT_DIR} not found.\n"
+            exit 1
+        fi
+    fi
 fi
 
 # And the latex template
@@ -52,7 +77,10 @@ fi
 
 # Alert the user to all their settings
 
+printf "paperdir: ${INPUT_PAPER_DIR}\n"
 printf "template: ${INPUT_LATEX_TEMPLATE}\n"
+printf " mapping: ${INPUT_MAPPING_FILE}\n"
+printf "variable: ${INPUT_VARIABLES_FILE}\n"
 printf "  output: ${INPUT_PAPER_OUTFILE}\n"
 printf "  bibtex: ${INPUT_BIBTEX}\n"
 printf "   paper: ${INPUT_PAPER_MARKDOWN}\n"
@@ -62,9 +90,13 @@ printf "    logo: ${INPUT_PNG_LOGO}\n"
 
 # Generate ---------------------------------------------------------------------
 
-if [ "${INPUT_PDF_TYPE}" == "minimal" ]; then
+generate_minimal() {
 
-    printf "Producing minimal pdf.\n"
+    INPUT_PAPER_MARKDOWN="${1}"
+    INPUT_PAPER_OUTFILE="${2}"
+    INPUT_BIBTEX="${3}"
+    printf "Producing minimal pdf for ${INPUT_PAPER_MARKDOWN} -> ${INPUT_PAPER_OUTFILE}\n"
+
     COMMAND="pandoc ${INPUT_PAPER_MARKDOWN} --filter pandoc-citeproc"
     if [ ! -z "${INPUT_BIBTEX}" ]; then
         COMMAND="${COMMAND} --bibliography ${INPUT_BIBTEX}"
@@ -73,10 +105,15 @@ if [ "${INPUT_PDF_TYPE}" == "minimal" ]; then
     printf "${COMMAND}\n"
     $COMMAND
 
-else
+}
 
-    # Generate list of variables from the mapping file
+generate_mappings() {
+
     mappings=""
+    INPUT_MAPPING_FILE="${1}"
+    INPUT_VARIABLES_FILE="${2}"
+    OUTPUT_MAPPINGS_TO="${3}"
+
     if [ ! -z "${INPUT_MAPPING_FILE}" ]; then
         if [ ! -f ${INPUT_MAPPING_FILE} ]; then
             printf "${INPUT_MAPPING_FILE} is not found\n"
@@ -84,10 +121,8 @@ else
         fi
         while IFS= read -r line; do
             if [ ! -z "${line}" ]; then
-                mappingkey=$(cut -d ' ' -f 1 <<< "$line")
-                mappingval=$(cut -d ' ' -f 2 <<< "$line")
+                IFS=' ' read -r mappingkey mappingval <<< "$line"
                 value=$(ob-paper get ${INPUT_PAPER_MARKDOWN} ${mappingval})
-                echo $value
                 mappings="$mappings -V ${mappingkey}=\"${value}\""
             fi
         done < "$INPUT_MAPPING_FILE"
@@ -101,8 +136,7 @@ else
         fi
         while IFS= read -r line; do
             if [ ! -z "${line}" ]; then
-                key=$( cut -d ' ' -f 1 <<< "$line" )
-                val=$( cut -d ' ' -f 2 <<< "$line" )
+                IFS=' ' read -r key val <<< "$line"
                 if [ ! -z "${val}" ]; then
                     mappings="$mappings -V ${key}=\"${val}\""
                 else
@@ -112,29 +146,85 @@ else
         done < "$INPUT_VARIABLES_FILE"
     fi
 
-    # Build command programatically
-    COMMAND="/usr/bin/pandoc"
-    if [ ! -z "${mappings}" ]; then
-        COMMAND="${COMMAND} ${mappings}"
+    echo "${mappings}" > "${OUTPUT_MAPPINGS_TO}"
+}
+
+# Minimal PDF generation
+
+if [ "${INPUT_PDF_TYPE}" == "minimal" ]; then
+    if [ ! -z "${INPUT_PAPER_MARKDOWN}" ]; then
+        generate_minimal "${INPUT_PAPER_MARKDOWN}" "${INPUT_PAPER_OUTFILE}" "${INPUT_BIBTEX}"
+    else
+        for INPUT_PAPER_MARKDOWN in $(find "${INPUT_PAPER_DIR}" -regex '.*/[^/]*.md'); do
+            outfile=$(basename ${INPUT_PAPER_MARKDOWN%.md}).pdf
+            if [ ! -z "${INPUT_OUTPUT_DIR}" ]; then
+                outfile="${INPUT_OUTPUT_DIR}"/"${outfile}"
+            else
+                outdir=$(dirname "${INPUT_PAPER_MARKDOWN}")
+                outfile="${outdir}/${outfile}"
+            fi 
+            # Only run if outfile does not exist
+            if [ ! -f "${outfile}" ]; then
+                generate_minimal "${INPUT_PAPER_MARKDOWN}" "${outfile}" "${INPUT_BIBTEX}"
+            fi
+        done
     fi
+
+# PDF with template generation
+
+else
 
     # Bibliography?
     if [ ! -z "${INPUT_BIBTEX}" ]; then
         COMMAND="${COMMAND} --bibliography ${INPUT_BIBTEX}"
     fi
-    COMMAND="${COMMAND} -V graphics=\"true\" -V logo_path=\"${INPUT_PNG_LOGO}\" -V geometry:margin=1in --verbose -o ${INPUT_PAPER_OUTFILE} --pdf-engine=xelatex --filter /usr/bin/pandoc-citeproc ${INPUT_PAPER_MARKDOWN} --from markdown+autolink_bare_uris --template ${INPUT_LATEX_TEMPLATE}"
-    printf "$COMMAND\n"
-    printf "${COMMAND}" > pandoc_run.sh
-    chmod +x pandoc_run.sh
-    /bin/bash pandoc_run.sh
 
+    if [ ! -z "${INPUT_PAPER_MARKDOWN}" ]; then
+
+        # Build command programatically
+        generate_mappings "${INPUT_MAPPING_FILE}" "${INPUT_VARIABLES_FILE}" mappings.txt
+        mappings=$(cat mappings.txt)
+        COMMAND="/usr/bin/pandoc ${mappings}"
+
+        COMMAND="${COMMAND} -V graphics=\"true\" -V logo_path=\"${INPUT_PNG_LOGO}\" -V geometry:margin=1in --verbose -o ${INPUT_PAPER_OUTFILE} --pdf-engine=xelatex --filter /usr/bin/pandoc-citeproc ${INPUT_PAPER_MARKDOWN} --from markdown+autolink_bare_uris --template ${INPUT_LATEX_TEMPLATE}"
+        printf "$COMMAND\n"
+        printf "${COMMAND}" > pandoc_run.sh
+        chmod +x pandoc_run.sh
+        /bin/bash pandoc_run.sh
+
+    else
+        for INPUT_PAPER_MARKDOWN in $(find "${INPUT_PAPER_DIR}" -regex '.*/[^/]*.md'); do
+            outfile=$(basename ${INPUT_PAPER_MARKDOWN%.md}).pdf
+            if [ ! -z "${INPUT_OUTPUT_DIR}" ]; then
+                outfile="${INPUT_OUTPUT_DIR}"/"${outfile}"
+            else
+                outdir=$(dirname "${INPUT_PAPER_MARKDOWN}")
+                outfile="${outdir}/${outfile}"
+            fi 
+
+            # Only run if outfile does not exist
+            if [ ! -f "${outfile}" ]; then
+
+                generate_mappings "${INPUT_MAPPING_FILE}" "${INPUT_VARIABLES_FILE}" mappings.txt
+                mappings=$(cat mappings.txt)
+
+                COMMAND="/usr/bin/pandoc ${mappings} -V graphics=\"true\" -V logo_path=\"${INPUT_PNG_LOGO}\" -V geometry:margin=1in --verbose -o ${outfile} --pdf-engine=xelatex --filter /usr/bin/pandoc-citeproc ${INPUT_PAPER_MARKDOWN} --from markdown+autolink_bare_uris --template ${INPUT_LATEX_TEMPLATE}"
+                printf "$COMMAND\n"
+                printf "${COMMAND}" > pandoc_run.sh
+                chmod +x pandoc_run.sh
+                /bin/bash pandoc_run.sh
+            fi
+        done
+    fi
 fi
 
-if [ ! -f "${INPUT_PAPER_OUTFILE}" ]; then
-    printf "There was an issue rendering ${INPUT_PAPER_OUTFILE}\n"
-    exit 1
-else
+if [ -f "${INPUT_PAPER_OUTFILE}" ]; then
     printf "Files in workspace:\n"
     ls
     chmod 0777 "${INPUT_PAPER_OUTFILE}"
+fi
+if [ -f "${INPUT_PAPER_DIR}" ]; then
+    printf "Files generated:\n"
+    ls "${INPUT_PAPER_DIR}"
+    chmod -R 0777 "${INPUT_PAPER_DIR}"
 fi
