@@ -1,5 +1,9 @@
 #!/bin/bash
 
+printf "Files in workspace:\n"
+ls
+ls paper
+
 # Check that the paper markdown file exists
 if [ ! -f "${INPUT_PAPER_MARKDOWN}" ]; then
     printf "Input markdown for paper ${INPUT_PAPER_MARKDOWN} not found.\n"
@@ -55,10 +59,11 @@ printf "    logo: ${INPUT_PNG_LOGO}\n"
 if [ "${INPUT_PDF_TYPE}" == "minimal" ]; then
 
     printf "Producing minimal pdf.\n"
-    COMMAND="pandoc ${INPUT_PAPER_MARKDOWN} --filter pandoc-citeproc -o ${INPUT_PAPER_OUTFILE}"
+    COMMAND="pandoc ${INPUT_PAPER_MARKDOWN} --filter pandoc-citeproc"
     if [ ! -z "${INPUT_BIBTEX}" ]; then
         COMMAND="${COMMAND} --bibliography ${INPUT_BIBTEX}"
     fi
+    COMMAND="${COMMAND} -o ${INPUT_PAPER_OUTFILE}"
     printf "${COMMAND}\n"
     $COMMAND
 
@@ -72,6 +77,7 @@ else
     paper_url=$(ob-paper get ${INPUT_PAPER_MARKDOWN} paper_url)
     review_issue_url=$(ob-paper get ${INPUT_PAPER_MARKDOWN} review_issue_url)
     
+    # TODO: modify this to be built based on custom variables
     /usr/bin/pandoc \
         -V paper_title="${title}" \
         -V footnote_paper_title="${title}" \
@@ -92,11 +98,16 @@ else
         -V geometry:margin=1in \
         --verbose \
         -o "${INPUT_PAPER_OUTFILE}" \
+        --bibliography "${INPUT_BIBTEX}" \
         --pdf-engine=xelatex \
         --filter /usr/bin/pandoc-citeproc "${INPUT_PAPER_MARKDOWN}" \
         --from markdown+autolink_bare_uris \
         --template "${INPUT_LATEX_TEMPLATE}"
 
 fi
+
+printf "Files in workspace:\n"
+ls
+ls paper
 
 chmod 0777 "${INPUT_PAPER_OUTFILE}"
