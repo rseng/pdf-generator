@@ -1,5 +1,8 @@
 #!/bin/bash
 
+printf "Files in workspace:\n"
+ls
+
 # Check that the paper markdown file exists
 if [ ! -f "${INPUT_PAPER_MARKDOWN}" ]; then
     printf "Input markdown for paper ${INPUT_PAPER_MARKDOWN} not found.\n"

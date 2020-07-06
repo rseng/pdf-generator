@@ -2,7 +2,7 @@ name: PDF Paper Generator
 description: 'A GitHub action to generate a PDF from an input markdown file.'
 author: 'vsoch'
 branding:
-  icon: 'book'  
+  icon: 'file-text'  
   color: 'blue'
 runs:
   using: 'docker'
