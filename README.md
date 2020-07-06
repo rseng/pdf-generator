@@ -30,7 +30,9 @@ The following variables are defined and can be customized.
 | output_dir | Only used when paper_dir is defined, write output papers to this directory. | no | unset |
 
 **Important** if you set an output directory, the output files will be named based on the 
-markdown basename. You should ensure uniqueness of names, even between directories.
+markdown basename. You should ensure uniqueness of names, even between directories. If you
+don't set an output directory, then the rendered pdfs will go into the same folder where
+the markdown was found.
 
 ### Quick Example
 

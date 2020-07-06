@@ -115,6 +115,9 @@ if [ "${INPUT_PDF_TYPE}" == "minimal" ]; then
             outfile=$(basename ${INPUT_PAPER_MARKDOWN%.md}).pdf
             if [ ! -z "${INPUT_OUTPUT_DIR}" ]; then
                 outfile="${INPUT_OUTPUT_DIR}"/"${outfile}"
+            else
+                outdir=$(dirname "${INPUT_PAPER_MARKDOWN}")
+                outfile="${outdir}/${outfile}"
             fi 
             generate_minimal "${INPUT_PAPER_MARKDOWN}" "${outfile}" "${INPUT_BIBTEX}"
         done
@@ -136,7 +139,6 @@ else
                 mappingkey=$(cut -d ' ' -f 1 <<< "$line")
                 mappingval=$(cut -d ' ' -f 2 <<< "$line")
                 value=$(ob-paper get ${INPUT_PAPER_MARKDOWN} ${mappingval})
-                echo $value
                 mappings="$mappings -V ${mappingkey}=\"${value}\""
             fi
         done < "$INPUT_MAPPING_FILE"
@@ -185,6 +187,9 @@ else
             outfile=$(basename ${INPUT_PAPER_MARKDOWN%.md}).pdf
             if [ ! -z "${INPUT_OUTPUT_DIR}" ]; then
                 outfile="${INPUT_OUTPUT_DIR}"/"${outfile}"
+            else
+                outdir=$(dirname "${INPUT_PAPER_MARKDOWN}")
+                outfile="${outdir}/${outfile}"
             fi 
             COMMAND="${COMMAND} -V graphics=\"true\" -V logo_path=\"${INPUT_PNG_LOGO}\" -V geometry:margin=1in --verbose -o ${outfile} --pdf-engine=xelatex --filter /usr/bin/pandoc-citeproc ${INPUT_PAPER_MARKDOWN} --from markdown+autolink_bare_uris --template ${INPUT_LATEX_TEMPLATE}"
             printf "$COMMAND\n"
