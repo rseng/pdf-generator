@@ -14,6 +14,14 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v2
 
+      # Example of dynamically adding variables
+      - name: Set Publication Date Variables
+        run: |
+            PUBDATE=$(date +'%B %-d, %Y')
+            PUBYEAR=$(date +'%Y')
+            echo "published ${PUBDATE}" >> _events/sorse-variables.txt
+            echo "year ${PUBYEAR}" >> _events/sorse-variables.txt
+
       # Be sure to update to a release https://github.com/rseng/pdf-generator
       - name: Generate Full PDF Template      
         uses: rseng/pdf-generator@master
