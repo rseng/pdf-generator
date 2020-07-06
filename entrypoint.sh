@@ -139,8 +139,7 @@ else
         fi
         while IFS= read -r line; do
             if [ ! -z "${line}" ]; then
-                mappingkey=$(cut -d ' ' -f 1 <<< "$line")
-                mappingval=$(cut -d ' ' -f 2 <<< "$line")
+                IFS=' ' read -r mappingkey mappingval <<< "$line"
                 value=$(ob-paper get ${INPUT_PAPER_MARKDOWN} ${mappingval})
                 mappings="$mappings -V ${mappingkey}=\"${value}\""
             fi
@@ -155,8 +154,7 @@ else
         fi
         while IFS= read -r line; do
             if [ ! -z "${line}" ]; then
-                key=$( cut -d ' ' -f 1 <<< "$line" )
-                val=$( cut -d ' ' -f 2 <<< "$line" )
+                IFS=' ' read -r key val <<< "$line"
                 if [ ! -z "${val}" ]; then
                     mappings="$mappings -V ${key}=\"${val}\""
                 else
