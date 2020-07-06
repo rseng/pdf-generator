@@ -1,8 +1,13 @@
 #!/bin/bash
 
+# Change working directory
+if [ ! -z "${INPUT_WORKDIR}" ]; then
+    printf "Changing working directory to ${INPUT_WORKDIR}\n"
+    cd "${INPUT_WORKDIR}"
+fi
+
 printf "Files in workspace:\n"
 ls
-ls paper
 
 # Check that the paper markdown file exists
 if [ ! -f "${INPUT_PAPER_MARKDOWN}" ]; then
@@ -15,6 +20,7 @@ if [ ! -f "${INPUT_LATEX_TEMPLATE}" ]; then
     printf "LaTex template ${INPUT_LATEX_TEMPLATE} does not exist."
     exit 1
 fi
+
 
 # And the logo
 if [ -z "${INPUT_PNG_LOGO}" ]; then
@@ -69,45 +75,66 @@ if [ "${INPUT_PDF_TYPE}" == "minimal" ]; then
 
 else
 
-    authors=$(ob-paper get ${INPUT_PAPER_MARKDOWN} authors:name)
-    title=$(ob-paper get ${INPUT_PAPER_MARKDOWN} title)
-    repo=$(ob-paper get ${INPUT_PAPER_MARKDOWN} repo)
-    archive_doi=$(ob-paper get ${INPUT_PAPER_MARKDOWN} archive_doi)
-    formatted_doi=$(ob-paper get ${INPUT_PAPER_MARKDOWN} formatted_doi)
-    paper_url=$(ob-paper get ${INPUT_PAPER_MARKDOWN} paper_url)
-    review_issue_url=$(ob-paper get ${INPUT_PAPER_MARKDOWN} review_issue_url)
-    
-    # TODO: modify this to be built based on custom variables
-    /usr/bin/pandoc \
-        -V paper_title="${title}" \
-        -V footnote_paper_title="${title}" \
-        -V citation_author="${authors}" \
-        -V repository="${repo}" \
-        -V archive_doi="${archive_doi}" \
-        -V formatted_doi="${formatted_doi}" \
-        -V paper_url="http://joss.theoj.org/papers/" \
-        -V review_issue_url="https://github.com/openjournals/joss-reviews/issues/${issue}" \
-        -V issue="${issue}" \
-        -V volume="${vol}" \
-        -V year="${year}" \
-        -V submitted="${submitted}" \
-        -V published="${accepted}" \
-        -V page="${issue}" \
-        -V graphics="true" \
-        -V logo_path="${INPUT_PNG_LOGO}" \
-        -V geometry:margin=1in \
-        --verbose \
-        -o "${INPUT_PAPER_OUTFILE}" \
-        --bibliography "${INPUT_BIBTEX}" \
-        --pdf-engine=xelatex \
-        --filter /usr/bin/pandoc-citeproc "${INPUT_PAPER_MARKDOWN}" \
-        --from markdown+autolink_bare_uris \
-        --template "${INPUT_LATEX_TEMPLATE}"
+    # Generate list of variables from the mapping file
+    mappings=""
+    if [ ! -z "${INPUT_MAPPING_FILE}" ]; then
+        if [ ! -f ${INPUT_MAPPING_FILE} ]; then
+            printf "${INPUT_MAPPING_FILE} is not found\n"
+            exit 1
+        fi
+        while IFS= read -r line; do
+            if [ ! -z "${line}" ]; then
+                mappingkey=$(cut -d ' ' -f 1 <<< "$line")
+                mappingval=$(cut -d ' ' -f 2 <<< "$line")
+                value=$(ob-paper get ${INPUT_PAPER_MARKDOWN} ${mappingval})
+                echo $value
+                mappings="$mappings -V ${mappingkey}=\"${value}\""
+            fi
+        done < "$INPUT_MAPPING_FILE"
+    fi
+
+    # Now add hard coded variables
+    if [ ! -z "${INPUT_VARIABLES_FILE}" ]; then
+        if [ ! -f ${INPUT_VARIABLES_FILE} ]; then
+            printf "${INPUT_VARIABLES_FILE} is not found\n"
+            exit 1
+        fi
+        while IFS= read -r line; do
+            if [ ! -z "${line}" ]; then
+                key=$( cut -d ' ' -f 1 <<< "$line" )
+                val=$( cut -d ' ' -f 2 <<< "$line" )
+                if [ ! -z "${val}" ]; then
+                    mappings="$mappings -V ${key}=\"${val}\""
+                else
+                    mappings="$mappings -V ${key}="
+                fi
+            fi
+        done < "$INPUT_VARIABLES_FILE"
+    fi
+
+    # Build command programatically
+    COMMAND="/usr/bin/pandoc"
+    if [ ! -z "${mappings}" ]; then
+        COMMAND="${COMMAND} ${mappings}"
+    fi
+
+    # Bibliography?
+    if [ ! -z "${INPUT_BIBTEX}" ]; then
+        COMMAND="${COMMAND} --bibliography ${INPUT_BIBTEX}"
+    fi
+    COMMAND="${COMMAND} -V graphics=\"true\" -V logo_path=\"${INPUT_PNG_LOGO}\" -V geometry:margin=1in --verbose -o ${INPUT_PAPER_OUTFILE} --pdf-engine=xelatex --filter /usr/bin/pandoc-citeproc ${INPUT_PAPER_MARKDOWN} --from markdown+autolink_bare_uris --template ${INPUT_LATEX_TEMPLATE}"
+    printf "$COMMAND\n"
+    printf "${COMMAND}" > pandoc_run.sh
+    chmod +x pandoc_run.sh
+    /bin/bash pandoc_run.sh
 
 fi
 
-printf "Files in workspace:\n"
-ls
-ls paper
-
-chmod 0777 "${INPUT_PAPER_OUTFILE}"
+if [ ! -f "${INPUT_PAPER_OUTFILE}" ]; then
+    printf "There was an issue rendering ${INPUT_PAPER_OUTFILE}\n"
+    exit 1
+else
+    printf "Files in workspace:\n"
+    ls
+    chmod 0777 "${INPUT_PAPER_OUTFILE}"
+fi

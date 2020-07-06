@@ -1,5 +1,5 @@
 FROM ubuntu:18.04
-# docker build -t vsoch/pdf-generator .
+# docker build -t rseng/pdf-generator .
 
 LABEL maintainer "@vsoch"
 ENV DEBIAN_FRONTEND noninteractive

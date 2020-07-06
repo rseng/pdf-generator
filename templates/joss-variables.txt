@@ -1,0 +1,2 @@
+paper_url http://joss.theoj.org/papers/
+review_issue_url https://github.com/openjournals/joss-reviews/issues/
