@@ -8,7 +8,7 @@ on:
 
 jobs:
   GeneratePdfArtifacts:
-    name: Generate static web
+    name: Generate PDFs
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
