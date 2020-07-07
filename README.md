@@ -30,6 +30,7 @@ The following variables are defined and can be customized.
 | mapping_file | a file with lines of key=value mappings to use | no | unset | 
 | paper_dir | If you want to render an entire folder of markdowns (recursive) set this variable | no | unset |
 | output_dir | Only used when paper_dir is defined, write output papers to this directory. | no | unset |
+| verbose | add `--verbose` to pandoc for debugging | no | false |
 
 **Important** if you set an output directory, the output files will be named based on the 
 markdown basename. You should ensure uniqueness of names, even between directories. If you
@@ -122,6 +123,8 @@ This is different from a variable file where you would put "hard coded values"
 title This is the title of my paper
 ```
 
+There are also other `pdf_generator*` default variables that are added to the template
+for your convenience (e.g., the path to the output file or directory).
 Take a look at the variables and mapping example files in the [templates](templates) folder,
 and examples for GitHub actions in the [examples](examples) folder.
 

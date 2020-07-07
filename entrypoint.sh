@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 # Change working directory
 if [ ! -z "${INPUT_WORKDIR}" ]; then
     printf "Changing working directory to ${INPUT_WORKDIR}\n"
@@ -112,7 +114,8 @@ generate_mappings() {
     mappings=""
     INPUT_MAPPING_FILE="${1}"
     INPUT_VARIABLES_FILE="${2}"
-    OUTPUT_MAPPINGS_TO="${3}"
+    OUTPUT_FILE="${3}"
+    OUTPUT_MAPPINGS_TO="${4}"
 
     if [ ! -z "${INPUT_MAPPING_FILE}" ]; then
         if [ ! -f ${INPUT_MAPPING_FILE} ]; then
@@ -146,7 +149,30 @@ generate_mappings() {
         done < "$INPUT_VARIABLES_FILE"
     fi
 
+    # And finally, write variable defaults for different files
+    pdf_generator_outdir=$(dirname "${OUTPUT_FILE}")
+    pdf_generator_basename=$(basename "${OUTPUT_FILE}")
+    pdf_generator_fileprefix="${pdf_generator_basename%.pdf}"
+    mappings="$mappings -V pdf_generator_outfile=\"${OUTPUT_FILE}\""
+    mappings="$mappings -V pdf_generator_outdir=\"${pdf_generator_outdir}\""
+    mappings="$mappings -V pdf_generator_fileprefix=\"${pdf_generator_fileprefix}\""
+    mappings="$mappings -V pdf_generator_basename=\"${pdf_generator_basename}\""
     echo "${mappings}" > "${OUTPUT_MAPPINGS_TO}"
+}
+
+function get_outdir {
+
+    INPUT_PAPER_MARKDOWN="${1}"
+    INPUT_OUTPUT_DIR="${2}"
+    outfile_relative=$(realpath --relative-to="." "${INPUT_PAPER_MARKDOWN}")
+    outfile=$(basename ${outfile_relative%.md}).pdf
+    if [ ! -z "${INPUT_OUTPUT_DIR}" ]; then
+        outfile="${INPUT_OUTPUT_DIR}/${outfile}"
+    else
+        outdir=$(dirname "${outfile_relative}")
+        outfile="${outdir}/${outfile}"
+    fi
+    echo "${outfile}"
 }
 
 # Minimal PDF generation
@@ -156,13 +182,7 @@ if [ "${INPUT_PDF_TYPE}" == "minimal" ]; then
         generate_minimal "${INPUT_PAPER_MARKDOWN}" "${INPUT_PAPER_OUTFILE}" "${INPUT_BIBTEX}"
     else
         for INPUT_PAPER_MARKDOWN in $(find "${INPUT_PAPER_DIR}" -regex '.*/[^/]*.md'); do
-            outfile=$(basename ${INPUT_PAPER_MARKDOWN%.md}).pdf
-            if [ ! -z "${INPUT_OUTPUT_DIR}" ]; then
-                outfile="${INPUT_OUTPUT_DIR}"/"${outfile}"
-            else
-                outdir=$(dirname "${INPUT_PAPER_MARKDOWN}")
-                outfile="${outdir}/${outfile}"
-            fi 
+            outfile=$(get_outdir "${INPUT_PAPER_MARKDOWN}" "${INPUT_OUTPUT_DIR}")
             # Only run if outfile does not exist
             if [ ! -f "${outfile}" ]; then
                 generate_minimal "${INPUT_PAPER_MARKDOWN}" "${outfile}" "${INPUT_BIBTEX}"
@@ -177,8 +197,10 @@ else
     if [ ! -z "${INPUT_PAPER_MARKDOWN}" ]; then
 
         # Build command programatically
-        generate_mappings "${INPUT_MAPPING_FILE}" "${INPUT_VARIABLES_FILE}" mappings.txt
-        mappings=$(cat mappings.txt)
+        mappingfile=$(mktemp /tmp/mappings.XXXXXX)
+        generate_mappings "${INPUT_MAPPING_FILE}" "${INPUT_VARIABLES_FILE}" "${outfile}" "${mappingfile}"
+        mappings=$(cat "${mappingfile}")
+        rm "${mappingfile}"
         COMMAND="/usr/bin/pandoc ${mappings}"
 
         # Bibliography?
@@ -186,7 +208,12 @@ else
             COMMAND="${COMMAND} --bibliography ${INPUT_BIBTEX}"
         fi
 
-        COMMAND="${COMMAND} -V graphics=\"true\" -V logo_path=\"${INPUT_PNG_LOGO}\" -V geometry:margin=1in --verbose -o ${INPUT_PAPER_OUTFILE} --pdf-engine=xelatex --filter /usr/bin/pandoc-citeproc ${INPUT_PAPER_MARKDOWN} --from markdown+autolink_bare_uris --template ${INPUT_LATEX_TEMPLATE}"
+        COMMAND="${COMMAND} -V graphics=\"true\" -V logo_path=\"${INPUT_PNG_LOGO}\" -V geometry:margin=1in -o ${INPUT_PAPER_OUTFILE} --pdf-engine=xelatex --filter /usr/bin/pandoc-citeproc ${INPUT_PAPER_MARKDOWN} --from markdown+autolink_bare_uris --template ${INPUT_LATEX_TEMPLATE}"
+
+        # Verbose output?
+        if [ "${INPUT_VERBOSE}" == "true" ]; then
+            COMMAND="${COMMAND} --verbose" 
+        fi
         printf "$COMMAND\n"
         printf "${COMMAND}" > pandoc_run.sh
         chmod +x pandoc_run.sh
@@ -194,27 +221,28 @@ else
 
     else
         for INPUT_PAPER_MARKDOWN in $(find "${INPUT_PAPER_DIR}" -regex '.*/[^/]*.md'); do
-            outfile=$(basename ${INPUT_PAPER_MARKDOWN%.md}).pdf
-            if [ ! -z "${INPUT_OUTPUT_DIR}" ]; then
-                outfile="${INPUT_OUTPUT_DIR}"/"${outfile}"
-            else
-                outdir=$(dirname "${INPUT_PAPER_MARKDOWN}")
-                outfile="${outdir}/${outfile}"
-            fi 
+            outfile=$(get_outdir "${INPUT_PAPER_MARKDOWN}" "${INPUT_OUTPUT_DIR}")
 
             # Only run if outfile does not exist
             if [ ! -f "${outfile}" ]; then
 
                 COMMAND="/usr/bin/pandoc"
-                generate_mappings "${INPUT_MAPPING_FILE}" "${INPUT_VARIABLES_FILE}" mappings.txt
-                mappings=$(cat mappings.txt)
+                mappingfile=$(mktemp /tmp/mappings.XXXXXX)
+                generate_mappings "${INPUT_MAPPING_FILE}" "${INPUT_VARIABLES_FILE}" "${outfile}" "${mappingfile}"
+                mappings=$(cat "${mappingfile}")
+                rm "${mappingfile}"
 
                 # Bibliography?
                 if [ ! -z "${INPUT_BIBTEX}" ]; then
                     COMMAND="${COMMAND} --bibliography ${INPUT_BIBTEX}"
                 fi
 
-                COMMAND="${COMMAND} ${mappings} -V graphics=\"true\" -V logo_path=\"${INPUT_PNG_LOGO}\" -V geometry:margin=1in --verbose -o ${outfile} --pdf-engine=xelatex --filter /usr/bin/pandoc-citeproc ${INPUT_PAPER_MARKDOWN} --from markdown+autolink_bare_uris --template ${INPUT_LATEX_TEMPLATE}"
+                # Verbose?
+                if [ "${INPUT_VERBOSE}" == "true" ]; then
+                    COMMAND="${COMMAND} --verbose" 
+                fi
+
+                COMMAND="${COMMAND} ${mappings} -V graphics=\"true\" -V logo_path=\"${INPUT_PNG_LOGO}\" -V geometry:margin=1in  -o ${outfile} --pdf-engine=xelatex --filter /usr/bin/pandoc-citeproc ${INPUT_PAPER_MARKDOWN} --from markdown+autolink_bare_uris --template ${INPUT_LATEX_TEMPLATE}"
                 printf "$COMMAND\n"
                 printf "${COMMAND}" > pandoc_run.sh
                 chmod +x pandoc_run.sh
@@ -229,7 +257,7 @@ if [ -f "${INPUT_PAPER_OUTFILE}" ]; then
     ls
     chmod 0777 "${INPUT_PAPER_OUTFILE}"
 fi
-if [ -f "${INPUT_PAPER_DIR}" ]; then
+if [ -d "${INPUT_PAPER_DIR}" ]; then
     printf "Files generated:\n"
     ls "${INPUT_PAPER_DIR}"
     chmod -R 0777 "${INPUT_PAPER_DIR}"

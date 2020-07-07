@@ -35,6 +35,9 @@ inputs:
   pdf_type: 
     description: one of minimal or pdf.
     default: minimal
+  verbose:
+    description: turn on verbose output (default is false)
+    default: false
   variables_file:
     description: a file with one pair of variables per line for the template
     required: false
