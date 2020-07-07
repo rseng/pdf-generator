@@ -151,10 +151,11 @@ generate_mappings() {
 
     # And finally, write variable defaults for different files
     pdf_generator_outdir=$(dirname "${OUTPUT_FILE}")
-    pdf_generator_basename=$(basename "${OUTPUT_FILE}") 
+    pdf_generator_basename=$(basename "${OUTPUT_FILE}")
     pdf_generator_fileprefix="${pdf_generator_basename%.pdf}"
     mappings="$mappings -V pdf_generator_outfile=\"${OUTPUT_FILE}\""
     mappings="$mappings -V pdf_generator_outdir=\"${pdf_generator_outdir}\""
+    mappings="$mappings -V pdf_generator_fileprefix=\"${pdf_generator_fileprefix}\""
     mappings="$mappings -V pdf_generator_basename=\"${pdf_generator_basename}\""
     echo "${mappings}" > "${OUTPUT_MAPPINGS_TO}"
 }
@@ -198,7 +199,7 @@ else
             COMMAND="${COMMAND} --bibliography ${INPUT_BIBTEX}"
         fi
 
-        COMMAND="${COMMAND} -V graphics=\"true\" -V logo_path=\"${INPUT_PNG_LOGO}\" -V geometry:margin=1in --verbose -o ${INPUT_PAPER_OUTFILE} --pdf-engine=xelatex --filter /usr/bin/pandoc-citeproc ${INPUT_PAPER_MARKDOWN} --from markdown+autolink_bare_uris --template ${INPUT_LATEX_TEMPLATE}"
+        COMMAND="${COMMAND} -V graphics=\"true\" -V logo_path=\"${INPUT_PNG_LOGO}\" -V geometry:margin=1in -o ${INPUT_PAPER_OUTFILE} --pdf-engine=xelatex --filter /usr/bin/pandoc-citeproc ${INPUT_PAPER_MARKDOWN} --from markdown+autolink_bare_uris --template ${INPUT_LATEX_TEMPLATE}"
         printf "$COMMAND\n"
         printf "${COMMAND}" > pandoc_run.sh
         chmod +x pandoc_run.sh
@@ -228,7 +229,7 @@ else
                     COMMAND="${COMMAND} --bibliography ${INPUT_BIBTEX}"
                 fi
 
-                COMMAND="${COMMAND} ${mappings} -V graphics=\"true\" -V logo_path=\"${INPUT_PNG_LOGO}\" -V geometry:margin=1in --verbose -o ${outfile} --pdf-engine=xelatex --filter /usr/bin/pandoc-citeproc ${INPUT_PAPER_MARKDOWN} --from markdown+autolink_bare_uris --template ${INPUT_LATEX_TEMPLATE}"
+                COMMAND="${COMMAND} ${mappings} -V graphics=\"true\" -V logo_path=\"${INPUT_PNG_LOGO}\" -V geometry:margin=1in  -o ${outfile} --pdf-engine=xelatex --filter /usr/bin/pandoc-citeproc ${INPUT_PAPER_MARKDOWN} --from markdown+autolink_bare_uris --template ${INPUT_LATEX_TEMPLATE}"
                 printf "$COMMAND\n"
                 printf "${COMMAND}" > pandoc_run.sh
                 chmod +x pandoc_run.sh
