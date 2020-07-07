@@ -1,4 +1,4 @@
 journal_name SORSE
-published July 6, 2020
+date 2020-07-06
 website https://github.com/rseng/pdf-generator
 year 2020

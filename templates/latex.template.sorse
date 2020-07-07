@@ -15,6 +15,7 @@
 \usepackage{amssymb,amsmath}
 \usepackage{ifxetex,ifluatex}
 \usepackage{seqsplit}
+\usepackage[en-US]{datetime2}
 \usepackage{fixltx2e} % provides \textsubscript
 \usepackage[
   backend=biber,
@@ -323,12 +324,12 @@ $endif$
   \begin{itemize}
     \setlength\itemsep{0em}
     \item \href{https://sorse.github.io}{\color{linky}{SORSE}} \ExternalLink
-    $if(website)$\item \href{$website$}{\color{linky}{Event Website}} \ExternalLink$endif$
+    \item \href{https://sorse.github.io/programme/$input_file$/}{\color{linky}{Event Website}} \ExternalLink
   \end{itemize}
   \vspace{2mm}
 
   {\bfseries Category:} $category$\\
-  {\bfseries Published:} $published$
+  {\bfseries Published:} \DTMdate{$date$}
 
   \vspace{2mm}
   {\bfseries License}\\
