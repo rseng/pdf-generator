@@ -15,6 +15,7 @@ RUN apt update && \
        texlive-xetex \
        texlive \
        texlive-latex-extra \
+       texlive-generic-extra \
        texlive-bibtex-extra \
        texlive-fonts-recommended \
        tree \
