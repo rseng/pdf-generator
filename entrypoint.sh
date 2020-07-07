@@ -208,13 +208,17 @@ else
                 COMMAND="/usr/bin/pandoc"
                 generate_mappings "${INPUT_MAPPING_FILE}" "${INPUT_VARIABLES_FILE}" mappings.txt
                 mappings=$(cat mappings.txt)
+                
+                # get filename relative to input dir and without .md extension
+                REL_INPUT=$(realpath --relative-to=${INPUT_PAPER_DIR} ${INPUT_PAPER_MARKDOWN})
+                REL_INPUT=$(basename ${REL_INPUT%.md})
 
                 # Bibliography?
                 if [ ! -z "${INPUT_BIBTEX}" ]; then
                     COMMAND="${COMMAND} --bibliography ${INPUT_BIBTEX}"
                 fi
 
-                COMMAND="${COMMAND} ${mappings} -V graphics=\"true\" -V logo_path=\"${INPUT_PNG_LOGO}\" -V geometry:margin=1in --verbose -o ${outfile} --pdf-engine=xelatex --filter /usr/bin/pandoc-citeproc ${INPUT_PAPER_MARKDOWN} --from markdown+autolink_bare_uris --template ${INPUT_LATEX_TEMPLATE}"
+                COMMAND="${COMMAND} ${mappings} -V graphics=\"true\" -V logo_path=\"${INPUT_PNG_LOGO}\" -V input_file=\"${REL_INPUT}\" -V geometry:margin=1in --verbose -o ${outfile} --pdf-engine=xelatex --filter /usr/bin/pandoc-citeproc ${INPUT_PAPER_MARKDOWN} --from markdown+autolink_bare_uris --template ${INPUT_LATEX_TEMPLATE}"
                 printf "$COMMAND\n"
                 printf "${COMMAND}" > pandoc_run.sh
                 chmod +x pandoc_run.sh
