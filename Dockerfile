@@ -16,6 +16,7 @@ RUN apt update && \
        texlive \
        texlive-latex-extra \
        texlive-bibtex-extra \
+       texlive-generic-extra \
        texlive-fonts-recommended \
        tree \
        python3 \

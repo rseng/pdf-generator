@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 # Change working directory
 if [ ! -z "${INPUT_WORKDIR}" ]; then
     printf "Changing working directory to ${INPUT_WORKDIR}\n"
@@ -112,7 +114,8 @@ generate_mappings() {
     mappings=""
     INPUT_MAPPING_FILE="${1}"
     INPUT_VARIABLES_FILE="${2}"
-    OUTPUT_MAPPINGS_TO="${3}"
+    OUTPUT_FILE="${3}"
+    OUTPUT_MAPPINGS_TO="${4}"
 
     if [ ! -z "${INPUT_MAPPING_FILE}" ]; then
         if [ ! -f ${INPUT_MAPPING_FILE} ]; then
@@ -146,6 +149,13 @@ generate_mappings() {
         done < "$INPUT_VARIABLES_FILE"
     fi
 
+    # And finally, write variable defaults for different files
+    pdf_generator_outdir=$(dirname "${OUTPUT_FILE}")
+    pdf_generator_basename=$(basename "${OUTPUT_FILE}") 
+    pdf_generator_fileprefix="${pdf_generator_basename%.pdf}"
+    mappings="$mappings -V pdf_generator_outfile=\"${OUTPUT_FILE}\""
+    mappings="$mappings -V pdf_generator_outdir=\"${pdf_generator_outdir}\""
+    mappings="$mappings -V pdf_generator_basename=\"${pdf_generator_basename}\""
     echo "${mappings}" > "${OUTPUT_MAPPINGS_TO}"
 }
 
@@ -162,7 +172,7 @@ if [ "${INPUT_PDF_TYPE}" == "minimal" ]; then
             else
                 outdir=$(dirname "${INPUT_PAPER_MARKDOWN}")
                 outfile="${outdir}/${outfile}"
-            fi 
+            fi
             # Only run if outfile does not exist
             if [ ! -f "${outfile}" ]; then
                 generate_minimal "${INPUT_PAPER_MARKDOWN}" "${outfile}" "${INPUT_BIBTEX}"
@@ -177,8 +187,10 @@ else
     if [ ! -z "${INPUT_PAPER_MARKDOWN}" ]; then
 
         # Build command programatically
-        generate_mappings "${INPUT_MAPPING_FILE}" "${INPUT_VARIABLES_FILE}" mappings.txt
-        mappings=$(cat mappings.txt)
+        mappingfile=$(mktemp /tmp/mappings.XXXXXX)
+        generate_mappings "${INPUT_MAPPING_FILE}" "${INPUT_VARIABLES_FILE}" "${outfile}" "${mappingfile}"
+        mappings=$(cat "${mappingfile}")
+        rm "${mappingfile}"
         COMMAND="/usr/bin/pandoc ${mappings}"
 
         # Bibliography?
@@ -200,14 +212,16 @@ else
             else
                 outdir=$(dirname "${INPUT_PAPER_MARKDOWN}")
                 outfile="${outdir}/${outfile}"
-            fi 
+            fi
 
             # Only run if outfile does not exist
             if [ ! -f "${outfile}" ]; then
 
                 COMMAND="/usr/bin/pandoc"
-                generate_mappings "${INPUT_MAPPING_FILE}" "${INPUT_VARIABLES_FILE}" mappings.txt
-                mappings=$(cat mappings.txt)
+                mappingfile=$(mktemp /tmp/mappings.XXXXXX)
+                generate_mappings "${INPUT_MAPPING_FILE}" "${INPUT_VARIABLES_FILE}" "${outfile}" "${mappingfile}"
+                mappings=$(cat "${mappingfile}")
+                rm "${mappingfile}"
 
                 # Bibliography?
                 if [ ! -z "${INPUT_BIBTEX}" ]; then

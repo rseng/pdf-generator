@@ -122,6 +122,8 @@ This is different from a variable file where you would put "hard coded values"
 title This is the title of my paper
 ```
 
+There are also other `pdf_generator*` default variables that are added to the template
+for your convenience (e.g., the path to the output file or directory).
 Take a look at the variables and mapping example files in the [templates](templates) folder,
 and examples for GitHub actions in the [examples](examples) folder.
 
