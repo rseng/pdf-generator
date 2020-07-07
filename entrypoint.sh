@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 # Change working directory
 if [ ! -z "${INPUT_WORKDIR}" ]; then
     printf "Changing working directory to ${INPUT_WORKDIR}\n"
@@ -162,7 +164,7 @@ if [ "${INPUT_PDF_TYPE}" == "minimal" ]; then
             else
                 outdir=$(dirname "${INPUT_PAPER_MARKDOWN}")
                 outfile="${outdir}/${outfile}"
-            fi 
+            fi
             # Only run if outfile does not exist
             if [ ! -f "${outfile}" ]; then
                 generate_minimal "${INPUT_PAPER_MARKDOWN}" "${outfile}" "${INPUT_BIBTEX}"
@@ -200,7 +202,7 @@ else
             else
                 outdir=$(dirname "${INPUT_PAPER_MARKDOWN}")
                 outfile="${outdir}/${outfile}"
-            fi 
+            fi
 
             # Only run if outfile does not exist
             if [ ! -f "${outfile}" ]; then
@@ -208,7 +210,7 @@ else
                 COMMAND="/usr/bin/pandoc"
                 generate_mappings "${INPUT_MAPPING_FILE}" "${INPUT_VARIABLES_FILE}" mappings.txt
                 mappings=$(cat mappings.txt)
-                
+
                 # get filename relative to input dir and without .md extension
                 REL_INPUT=$(realpath --relative-to=${INPUT_PAPER_DIR} ${INPUT_PAPER_MARKDOWN})
                 REL_INPUT=$(basename ${REL_INPUT%.md})
