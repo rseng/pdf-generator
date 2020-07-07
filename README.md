@@ -30,6 +30,7 @@ The following variables are defined and can be customized.
 | mapping_file | a file with lines of key=value mappings to use | no | unset | 
 | paper_dir | If you want to render an entire folder of markdowns (recursive) set this variable | no | unset |
 | output_dir | Only used when paper_dir is defined, write output papers to this directory. | no | unset |
+| verbose | add `--verbose` to pandoc for debugging | no | false |
 
 **Important** if you set an output directory, the output files will be named based on the 
 markdown basename. You should ensure uniqueness of names, even between directories. If you
