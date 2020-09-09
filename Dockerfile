@@ -22,7 +22,10 @@ RUN apt update && \
        python3 \
        python3-pip \
        python3-setuptools \
+       locales \
        wget && \
+    locale-gen en_US en_US.UTF-8 && \
+    dpkg-reconfigure locales && \
     wget -O /tmp/pandoc.deb https://github.com/jgm/pandoc/releases/download/2.1.1/pandoc-2.1.1-1-amd64.deb && \
     dpkg -i /tmp/pandoc.deb && \
     mkdir -p /data /code  && \
