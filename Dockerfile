@@ -3,9 +3,6 @@ FROM ubuntu:18.04
 
 LABEL maintainer "@vsoch"
 ENV DEBIAN_FRONTEND noninteractive
-ENV LC_ALL "en_US.UTF-8"
-ENV LANG "en_US.UTF-8"
-ENV LANGUAGE "en_US.UTF-8"
 
 RUN apt update && \
     apt install --yes --no-install-recommends \
@@ -34,6 +31,9 @@ RUN apt update && \
     mkdir -p /data /code  && \
     pip3 install openbases
 
+ENV LC_ALL "en_US.UTF-8"
+ENV LANG "en_US.UTF-8"
+ENV LANGUAGE "en_US.UTF-8"
 ADD . /code
 RUN chmod u+x /code/entrypoint.sh
 WORKDIR /github/workspace
